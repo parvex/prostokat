@@ -3,18 +3,19 @@
 
 #include <iostream>
 
-class Point
+
+
+template<typename type = int> 
+struct Point
 {
 public:
-	int x;
-	int y;
+	type x;
+	type y;
 
 
-	Point(int x=0,int y=0): x(x), y(y) {} //konstruktor
+	Point(type x=0,type y=0): x(x), y(y) {} //konstruktor
 
-//	Point& operator =(int tab[2]) { x = tab[0]; y = tab[1]; return *this;}
 	bool operator ==(const Point pnt2) const { return(this->x == pnt2.x && this->y == pnt2.y); }
-//	bool operator ==(const int tab[2]) const { return (this->x == tab[0] && this->y == tab[1]);} //testowy //za dluga return warunek moze byc
 
 };
 
