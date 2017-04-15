@@ -1,6 +1,7 @@
 #include <boost/test/auto_unit_test.hpp>
 #include "point.h"
 #include "rectangle.h"
+#include "container.h"
 #include "stdafx.h" //usunac
 using namespace std;
 
@@ -609,8 +610,8 @@ BOOST_AUTO_TEST_CASE(rectangle_enclosesforpoints_false_verge_int)
 
 BOOST_AUTO_TEST_CASE(rectangle_enclosesforpoints_false_verge_double)
 {
-	Rect<double> test1 = { { 1,9 },{ 2,6 } };
-	Point<double> test2 = { 0,6 };
+	Rect<double> test1 = { { 1.1,9.3 },{ 2.4,6 } };
+	Point<double> test2 = { 0.2,6 };
 
 	BOOST_CHECK(!test1.encloses(test2));
 }
@@ -632,14 +633,51 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE(container_template_tests)
 
 
+BOOST_AUTO_TEST_CASE(operator_plus_equal_for_rect)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+	Container<int> cont;
+	cont += rect;
+	BOOST_CHECK(cont[0] == rect);
+	rect = { {3,5},{120,2} };
+	cont.add(rect);
+	BOOST_CHECK(cont[1] == rect);
+	cont.add(rect);
+	cont.add(rect);
+	cont.add(rect);
+	rect = { {3,4}, {5,7} };
+	cont.add(rect);
+	cont.add(rect);
+	BOOST_CHECK(cont[1] == rect); //checking if	rect is being saved from the begining
 
 
 
+}
+
+
+BOOST_AUTO_TEST_CASE(function_remove)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+	Container<int> cont;
+	cont += { {5, 4}, { 8,6 }};
+	cont += rect;
+	cont += { {4, 1}, { 20,8 }};
+	cont.remove(1);
+	BOOST_CHECK(cont[1] == Rect<int>({ {4, 1}, { 20,8 }}));
+}
 
 
 
-
-
+BOOST_AUTO_TEST_CASE(function_remove_removing_middle)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+	Container<int> cont;
+	cont += { {5, 4}, { 8,6 }};
+	cont += rect;
+	cont += { {4, 1}, { 20,8 }};
+	cont.remove(1);
+	BOOST_CHECK(cont[1] == Rect<int>({ { 4, 1 },{ 20,8 } }));
+}
 
 
 
@@ -647,6 +685,76 @@ BOOST_AUTO_TEST_SUITE(container_template_tests)
 
 
 BOOST_AUTO_TEST_SUITE_END()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //BOOST_AUTO_TEST_CASE(recteenclpnt)
 //{

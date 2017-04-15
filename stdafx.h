@@ -15,7 +15,7 @@
 
 #include "point.h"
 #include "rectangle.h"
-
+#include "container.h"
 
 //Adding required boost header
 #include <boost/test/unit_test.hpp>
