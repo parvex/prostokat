@@ -633,29 +633,67 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE(container_template_tests)
 
 
-BOOST_AUTO_TEST_CASE(operator_plus_equal_for_rect)
+BOOST_AUTO_TEST_CASE(container_operator_plus_equal_for_rect_single)
 {
 	Rect<int> rect = { { 3,9 },{ 4,6 } };
 	Container<int> cont;
 	cont += rect;
 	BOOST_CHECK(cont[0] == rect);
-	rect = { {3,5},{120,2} };
-	cont.add(rect);
-	BOOST_CHECK(cont[1] == rect);
-	cont.add(rect);
-	cont.add(rect);
-	cont.add(rect);
-	rect = { {3,4}, {5,7} };
-	cont.add(rect);
-	cont.add(rect);
-	BOOST_CHECK(cont[1] == rect); //checking if	rect is being saved from the begining
-
 
 
 }
 
+BOOST_AUTO_TEST_CASE(container_operator_plus_equal_for_rect_three_mixed_with_add)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+	Rect<int> rect2 = { { 3,4 },{ 5,7 } };
+	Rect<int> rect3 = { { 7,4 },{ 15,27 } };
+	Container<int> cont;
+	cont += rect;
+	cont += rect2;
+	cont.add(rect3);
 
-BOOST_AUTO_TEST_CASE(function_remove)
+	BOOST_CHECK(cont[0] == rect && cont[1] == rect2 && cont[2] == rect3); //checking if	rect is being saved from the begining
+
+}
+
+BOOST_AUTO_TEST_CASE(container_operator_plus_equal_for_rect_mixed_with_add_overflow)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+	Rect<int> rect2 = { { 3,4 },{ 5,7 } };
+	Rect<int> rect3 = { { 7,4 },{ 15,27 } };
+	Container<int> cont(3);
+	cont += rect;
+	cont += rect2;
+	cont.add(rect3);
+	cont += rect3;
+	cont.add(rect);
+
+	BOOST_CHECK(cont[0] == rect3 && cont[1] == rect && cont[2] == rect3); //checking if	rect is being saved from the begining
+
+	BOOST_CHECK(cont[10] == rect); // checking exceeding the actual size of cont
+
+}
+
+BOOST_AUTO_TEST_CASE(container_function_add_six_with_overflow)
+{
+
+	Container<int> cont(6);
+	Rect<int> r0 = { { 2, 6 },{ 3,8 } }; //deleted
+	Rect<int> r1 = { { 6, 10 },{ -2,8 } };
+	Rect<int> r2 = { { 2, 2 },{ 3,12 } };
+	Rect<int> r3 = { { 4,7 },{ -3,11 } }; //deleted
+	Rect<int> r4 = { { 5, 2 },{ 3,122 } };
+	Rect<int> r5 = { { 8, 2 },{ 33,124 } }; //deleted
+
+
+	cont.add(r0); cont.add(r1); cont.add(r2); cont.add(r3); cont.add(r4); cont.add(r5); cont.add(r3); cont.add(r5);
+
+	BOOST_CHECK(cont[0] == r3 && cont[1] == r5 && cont[2] == r2 && cont[3] == r3 && cont[4] == r4 && cont[5] == r5 && cont.size() == 6  && cont.max( ) == 6); 
+
+}
+
+BOOST_AUTO_TEST_CASE(container_function_remove_middle)
 {
 	Rect<int> rect = { { 3,9 },{ 4,6 } };
 	Container<int> cont;
@@ -666,22 +704,149 @@ BOOST_AUTO_TEST_CASE(function_remove)
 	BOOST_CHECK(cont[1] == Rect<int>({ {4, 1}, { 20,8 }}));
 }
 
+BOOST_AUTO_TEST_CASE(container_function_remove_three_randomly)
+{
+
+	Container<int> cont(6);
+	Rect<int> r0 = { {2, 6}, { 3,8 } }; //deleted
+	Rect<int> r1 = { {6, 10}, { -2,8 } };
+	Rect<int> r2 = { {2, 2}, { 3,12 } };
+	Rect<int> r3 =  {{4,7}, { -3,11 } }; //deleted
+	Rect<int> r4 = { {5, 2}, { 3,122 } };
+	Rect<int> r5 = { {8, 2}, { 33,124 } }; //deleted
+
+	cont.add(r0); cont.add(r1); cont.add(r2); cont.add(r3); cont.add(r4); cont.add(r5);
+
+	BOOST_CHECK(cont.size() == 6);
+
+	cont.remove(0);
+	cont.remove(2);
+	cont.remove(3);
+	//function remove also moves objects to proper place
+	BOOST_CHECK(cont[0] == r1 && cont[1] == r2 && cont[2] == r4 && cont[3] == r1 && cont[4] == r2 && cont[5] == r4 && cont.size() == 3); //cont[3],[4],[5] doesn't exist so cont[] returns three first objects
+
+}
 
 
-BOOST_AUTO_TEST_CASE(function_remove_removing_middle)
+BOOST_AUTO_TEST_CASE(container_function_remove_last)
 {
 	Rect<int> rect = { { 3,9 },{ 4,6 } };
 	Container<int> cont;
 	cont += { {5, 4}, { 8,6 }};
 	cont += rect;
 	cont += { {4, 1}, { 20,8 }};
-	cont.remove(1);
-	BOOST_CHECK(cont[1] == Rect<int>({ { 4, 1 },{ 20,8 } }));
+	cont.remove(2);
+	BOOST_CHECK(cont[2] == Rect<int>({ { 5, 4 },{ 8,6 } }) && cont[1] == rect); //after deleting cont[2] should return first one because [2] doesn't exist and it will return 2 modulo 2 == 0
+
 }
 
 
+BOOST_AUTO_TEST_CASE(container_function_resize_increasing)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+	Rect<int> rect2 = { { 3,4 },{ 5,7 } };
+	Rect<int> rect3 = { { 7,4 },{ 15,27 } };
+	Rect<int> rect4 = { {2,3} , {4,7} };
+	Container<int> cont(3);
+	cont += rect;
+	cont += rect2;
+	cont += rect3;
+	cont += rect4;
+	cont[0] = rect;
+	BOOST_CHECK(cont[0] == rect && cont[1] == rect2 && cont[2] == rect3 && cont[3] == rect && cont.size() == 3 && cont.max() == 3); //checking if overflowing works well, and cont[3] doesn't exist because it was overwritten by saving to cont[0]
 
 
+	cont.resize(4); //now rec4 should fit 
+
+	cont += rect4;
+
+	BOOST_CHECK(cont[0] == rect && cont[1] == rect2 && cont[2] == rect3 && cont[3] == rect4 && cont.size() == 4 && cont.max() == 4);
+
+}
+
+BOOST_AUTO_TEST_CASE(container_function_resize_decreasing)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+	Rect<int> rect2 = { { 3,4 },{ 5,7 } };
+	Rect<int> rect3 = { { 7,4 },{ 15,27 } };
+	Rect<int> rect4 = { { 2,3 } ,{ 4,7 } };
+	Container<int> cont(4);
+	cont += rect;
+	cont += rect2;
+	cont += rect3;
+	cont += rect4;
+
+	BOOST_CHECK(cont[0] == rect && cont[1] == rect2 && cont[2] == rect3 && cont[3] == rect4 && cont.size() == 4 && cont.max() == 4);
+
+
+	cont.resize(2); //now the size should be 2 and cont[2],[3],[4] should be rect and rect2, because rect3 and rect4 were deleted
+
+	BOOST_CHECK(cont[0] == rect && cont[1] == rect2 && cont[2] == rect && cont[3] == rect2 && cont.size() == 2 && cont.max() == 2);
+
+}
+
+
+BOOST_AUTO_TEST_CASE(container_function_border1)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+	Rect<int> rect2 = { { 3,4 },{ 5,7 } };
+	Rect<int> rect3 = { { 7,4 },{ 15,27 } };
+	Rect<int> rect4 = { { 2,3 } ,{ 4,7 } };
+	Container<int> cont(4);
+	cont += rect;
+	cont += rect2;
+	cont += rect3;
+	cont += rect4;
+
+	BOOST_CHECK(cont.border() == Rect<int>({ {2, 27}, {15, 3} }));
+
+}
+
+BOOST_AUTO_TEST_CASE(container_function_border2)
+{
+	Rect<int> rect = { { -20,9 },{ 4,6 } };
+	Rect<int> rect2 = { { 4,4 },{ 6,7 } };
+	Rect<int> rect3 = { { 7,4 },{ 15,328 } };
+	Rect<int> rect4 = { { 1,-9 } ,{ 3,7 } };
+	Container<int> cont(4);
+	cont += rect;
+	cont += rect2;
+	cont += rect3;
+	cont += rect4;
+
+	BOOST_CHECK(cont.border() == Rect<int>({ { -20, 328 },{ 15, -9 } }));
+
+}
+
+BOOST_AUTO_TEST_CASE(container_function_border_double)
+{
+	Rect<double> rect = { { -20.23,9.1 },{ 4.4,6.6 } };
+	Rect<double> rect2 = { { 4.6,4 },{ 6,7.1 } };
+	Rect<double> rect3 = { { 7,4 },{ 15,328.3 } };
+	Rect<double> rect4 = { { 1.5,-9.5 } ,{ 3,7.1 } };
+	Container<double> cont(4);
+	cont += rect;
+	cont += rect2;
+	cont += rect3;
+	cont += rect4;
+
+	BOOST_CHECK(cont.border() == Rect<double>({ { -20.23, 328.3 },{ 15, -9.5} }));
+
+}
+
+BOOST_AUTO_TEST_CASE(container_function_border_same_int)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+
+	Container<int> cont(4);
+	cont += rect;
+	cont += rect;
+	cont += rect;
+	cont += rect;
+
+	BOOST_CHECK(cont.border() == rect);
+
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()

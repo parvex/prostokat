@@ -20,11 +20,11 @@ public:
 	Container(int lim = 4) : limit(lim) {}//konstruktor
 
 
-	Container& operator += (const Rect<type> &rect);
-	Rect<type>& operator [] (int n) { return buf[n]; }
-	Container& add(const Rect<type> &rect);
-	Container& remove(int n) { buf.erase(buf.begin() + n); return *this; }
-	Container& resize(unsigned lim);
+	Container& operator += (const Rect<type> &rect); //dodaje nowy prostokat
+	Rect<type>& operator [] (int n) {return buf[n% (*this).size()];} //aby nie wyjsc poza zakres zwraca element o indeksie modulo rozmiaru
+	Container& add(const Rect<type> &rect); //dodaje nowy prostokat
+	Container& remove(int n) { buf.erase(buf.begin() + n); return *this; } //usuwa wybrany indeks
+	Container& resize(unsigned lim); //zmienia maxymalny rozmiar, jesli nowy rozmiar jest wiekszy to tylko zwieksza limit, jesli jest mniejszy to usuwa nadmiarowe elementy
 
 
 	template<class U>
@@ -97,35 +97,16 @@ Container<type>& Container<type>::resize(unsigned lim)
 template<class type>
 Rect<type> Container<type>::border() const//zwraca maxa ze wszystkich moze zmienic na wydajniejsza funkcje?
 {
-	Rect<type> border;
-	for (unsigned i = 0; i < buf.size(); i++)
+	if (buf.size() == 0)
+		return Rect<type>({ {0,0},{0,0} }); 
+
+	Rect<type> border(buf[0]);
+	for (unsigned i = 1; i < buf.size(); i++)
 	{
 		border += buf[i];
 	}
 	return border;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 template<class type>
