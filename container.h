@@ -17,7 +17,7 @@ private:
 	std::vector<Rect<type>> buf; //wektor bedacy buforem
 
 public:
-	Container(int lim = 4) : limit(lim) {}//konstruktor
+	Container(int lim = 4) : limit(lim), position(0) {}//konstruktor
 
 
 	Container& operator += (const Rect<type> &rect); //dodaje nowy prostokat
@@ -98,7 +98,7 @@ template<class type>
 Rect<type> Container<type>::border() const//zwraca maxa ze wszystkich moze zmienic na wydajniejsza funkcje?
 {
 	if (buf.size() == 0)
-		return Rect<type>({ {0,0},{0,0} }); 
+		return Rect<type>({ {0,0},{0,0} });
 
 	Rect<type> border(buf[0]);
 	for (unsigned i = 1; i < buf.size(); i++)
