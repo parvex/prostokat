@@ -1,5 +1,6 @@
 #include <boost/test/auto_unit_test.hpp>
 #include "point.h"
+#include "stdafx.h"
 #include "rectangle.h"
 #include "container.h"
 using namespace std;
@@ -813,6 +814,31 @@ BOOST_AUTO_TEST_CASE(container_function_resize_increasing)
 
 }
 
+BOOST_AUTO_TEST_CASE(container_function_resize_increasing_larger)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+	Rect<int> rect2 = { { 3,4 },{ 5,7 } };
+	Rect<int> rect3 = { { 7,4 },{ 15,27 } };
+	Rect<int> rect4 = { { 2,3 } ,{ 4,7 } };
+	Container<int> cont(3);
+	cont += rect;
+	cont += rect2;
+	cont += rect3;
+	cont += rect4;
+	cont[0] = rect;
+	BOOST_CHECK(cont[0] == rect && cont[1] == rect3 && cont[2] == rect4 && cont[3] == rect && cont.size() == 3 && cont.max() == 3); //checking if overflowing works well, and cont[3] doesn't exist because it was overwritten by saving to cont[0]
+
+
+	cont.resize(10); 
+	
+
+	cont.add(rect4).add(rect3).add(rect).add(rect2);
+	BOOST_CHECK(cont[0] == rect && cont[1] == rect3 && cont[2] == rect4 && cont[3] == rect4 && cont.size() == 7 && cont.max() == 10);
+
+	BOOST_CHECK(cont[4] == rect3 && cont[5] == rect && cont[6] == rect2);
+
+}
+
 
 BOOST_AUTO_TEST_CASE(container_function_resize_increasing_adding_after)
 {
@@ -856,6 +882,28 @@ BOOST_AUTO_TEST_CASE(container_function_resize_decreasing)
 	BOOST_CHECK(cont[0] == rect && cont[1] == rect2 && cont[2] == rect && cont[3] == rect2  && cont.size() == 2 && cont.max() == 2);
 
 }
+
+BOOST_AUTO_TEST_CASE(container_function_resize_decreasing_larger_overflow)
+{
+	Rect<int> rect = { { 3,9 },{ 4,6 } };
+	Rect<int> rect2 = { { 3,4 },{ 5,7 } };
+	Rect<int> rect3 = { { 7,4 },{ 15,27 } };
+	Rect<int> rect4 = { { 2,3 } ,{ 4,7 } };
+	Container<int> cont(7);
+	cont += rect;
+	cont += rect2;
+	cont += rect3;
+	cont += rect4;
+	cont.add(rect).add(rect2).add(rect3).add(rect4).add(rect2);
+
+
+
+	cont.resize(4); //now the size should be 2 and cont[2],[3],[4] should be rect and rect2, because rect3 and rect4 were deleted
+
+	BOOST_CHECK(cont[0] == rect3 && cont[1] == rect4 && cont[2] == rect && cont[3] == rect2  && cont.size() == 4 && cont.max() == 4);
+
+}
+
 
 BOOST_AUTO_TEST_CASE(container_function_resize_decreasing_overflowing_after)
 {

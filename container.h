@@ -1,6 +1,6 @@
 #ifndef CONTAINER_H
 #define CONTAINER_H
-
+#include "stdafx.h"
 #include "rectangle.h"
 
 
