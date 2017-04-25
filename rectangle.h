@@ -2,15 +2,6 @@
 #define RECT_H
 #include "point.h"
 
-template<class type>
-class Rect;
-
-template<class type>
-std::ostream& operator<<(std::ostream& str, const Rect<type> rect);
-
-
-
-
 
 template<class type = int> 
 class Rect
@@ -35,7 +26,7 @@ public:
 	Rect& operator -=(const Rect &rect2);
 	bool operator ==(const Rect &rect2) const { return this->topleft == rect2.topleft && this->bottomright == rect2.bottomright; } // to na pewno skrocic
 	template<class U>
-	friend std::ostream& operator<<(std::ostream& str, const Rect<U> rect);
+	friend std::ostream& operator<<(std::ostream& str, const Rect<U>& rect);
 
 
 	const Point<type>& gettopleft() const {return topleft;}
@@ -152,7 +143,7 @@ bool Rect<type>::crosses(const Rect<type> &rect2) const//jak lezy w srodku to te
 }
 /////////////////////////////////
 template<class type = int>
-inline std::ostream& operator<<(std::ostream& str, const Rect<type> rect)
+inline std::ostream& operator<<(std::ostream& str, const Rect<type>& rect)
 {
 	str << '[' << rect.bottomright << ", " << rect.topleft << ']';
 	return str;

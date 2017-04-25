@@ -1,8 +1,6 @@
-//#ifndef CONTAINER_H
-//#define CONTAINER_H
-//#endif
-#pragma once
-#include <vector>
+#ifndef CONTAINER_H
+#define CONTAINER_H
+
 #include "rectangle.h"
 
 
@@ -13,30 +11,25 @@ class Container
 {
 private:
 	unsigned limit;  //maxymalna pojemnosc bufora
-	int position; //indeks aktualnej pozycji bufora
-	std::vector<Rect<type>> buf; //wektor bedacy buforem
+	unsigned position; //indeks aktualnej pozycji bufora
+	unsigned amount;
+	Rect<type>* bufor;
 
 public:
-	Container(int lim = 4) : limit(lim), position(0) {}//konstruktor
-
+	Container(int lim = 4) : limit(lim), position(0), amount(0) { bufor = new Rect<type>[limit]; }//konstruktor
+	~Container() { delete bufor; }
 
 	Container& operator += (const Rect<type> &rect); //dodaje nowy prostokat
-	Rect<type>& operator [] (int n) {return buf[n% (*this).size()];} //aby nie wyjsc poza zakres zwraca element o indeksie modulo rozmiaru
+	Rect<type>& operator [] (int n); //zwraca referencje elementu liczac od najstarszego modulo ilosc dodanych elementow
+	const Rect<type>& operator [] (int n) const;
 	Container& add(const Rect<type> &rect); //dodaje nowy prostokat
-	Container& remove(int n) { buf.erase(buf.begin() + n); return *this; } //usuwa wybrany indeks
-	Container& resize(unsigned lim); //zmienia maxymalny rozmiar, jesli nowy rozmiar jest wiekszy to tylko zwieksza limit, jesli jest mniejszy to usuwa nadmiarowe elementy
-
-
-	template<class U>
-	friend std::ostream& operator<<(std::ostream& str, const Container<U> rect);
-
-
+	void resize(unsigned lim); //zmienia maxymalny rozmiar, jesli nowy rozmiar jest wiekszy to tylko zwieksza limit, jesli jest mniejszy to usuwa nadmiarowe elementy
+	void remove(unsigned n);
 
 	Rect<type> border() const;
-	int size() { return buf.size(); }
-	int max() { return limit; }
 
-
+	unsigned size() const { return amount; }
+	unsigned max() const { return limit; }
 
 
 
@@ -47,18 +40,9 @@ public:
 template <class type>
 Container<type>& Container<type>::operator +=(const Rect<type>& rect)
 {
-	if (buf.size() < limit)
-	{
-		buf.push_back(rect);
 
-	}
+	(*this).add(rect);
 
-	else
-	{
-		buf[position] = rect; // z buf.begin() + position?
-		++position;
-		position %= limit;
-	}
 
 	return *this;
 }
@@ -66,55 +50,110 @@ Container<type>& Container<type>::operator +=(const Rect<type>& rect)
 template <class type>
 Container<type>& Container<type>::add(const Rect<type>& rect)
 {
-	if (buf.size() < limit)
-	{
-		buf.push_back(rect);
+	bufor[position] = rect;
+	++position;
+	position %= limit;
 
-	}
-
-	else
-	{
-		buf[position] = rect;
-		++position;
-		position %= limit;
-	}
+	if (amount < limit)
+		amount++;
 
 	return *this;
 }
 
+template<class type>
+Rect<type>& Container<type>::operator [] (int n) 
+{
+	 if (amount == limit)
+		 return bufor[(n + position) % amount]; 
+	 else 
+		 return bufor[n % amount];  
+
+}
 
 template<class type>
-Container<type>& Container<type>::resize(unsigned lim)
+const Rect<type>& Container<type>::operator [] (int n) const
 {
-	limit = lim;
-	if (lim < buf.size())
+	if (amount == limit)
+		return bufor[(n + position) % amount];
+	else
+		return bufor[n % amount];
+}
+
+template<class type>
+void Container<type>::resize(unsigned lim)
+{
+
+	Rect<type>* holder = new Rect<type>[lim];
+
+	for (unsigned i = 0; i < lim && i < amount; i++)
 	{
-		buf.resize(lim); //usuwamy nadmiarowe prostokaty
+		holder[i] = (*this)[i];
 	}
-	return *this;
+	delete bufor;
+	limit = lim;
+	if (amount >= lim) //zmniejszamy wiec ilosc staje sie limitem, a pozycja jest liczona od 0, bo przepisujemy tablice poczawszy od najstarszego
+	{
+		amount = lim;
+		position = 0;
+	}
+	else
+	{
+		position = amount; //jesli powiekszamy, to element po ostatnim staje sie pozycja
+	}
+	bufor = holder;
+
+}
+
+template<class type> // 0 1 2x 3 4 <- 5 6 7 8 9 // 0 1 2 3 4 5 6 7 8 X
+inline void Container<type>::remove(unsigned n)
+{
+	if (amount == 0)
+		return;
+	unsigned index;
+	if (amount < limit)
+		index = n % amount;
+	else
+		index = (n + position) % amount;
+
+	Rect<type>* holder = new Rect<type>[limit]; //pomocnicza tablica
+	unsigned j = position;
+	for (unsigned i = 0; i < amount-1; i++, j++) //przepisywanie tablicy w odpowiedniej kolejnosci bez usuwanego elementu
+	{
+		j = j % amount;
+		if (j == index) //jesli natrafiamy na usuwany element to go pomijamy
+			j++;
+
+		holder[i] = bufor[j];
+	}
+	delete bufor;
+	bufor = holder;
+	--amount;
+	position = amount;
+
 }
 
 template<class type>
 Rect<type> Container<type>::border() const//zwraca maxa ze wszystkich moze zmienic na wydajniejsza funkcje?
 {
-	if (buf.size() == 0)
+	if (amount == 0)
 		return Rect<type>({ {0,0},{0,0} });
 
-	Rect<type> border(buf[0]);
-	for (unsigned i = 1; i < buf.size(); i++)
+	Rect<type> border(bufor[0]);
+	for (unsigned i = 1; i < amount; i++)
 	{
-		border += buf[i];
+		border += bufor[i];
 	}
 	return border;
 }
 
 
 template<class type>
-inline std::ostream & operator<<(std::ostream & str, const Container<type> cont)
+inline std::ostream & operator<< (std::ostream & str, const Container<type>& cont)
 {
-	for (unsigned i = 0; i <cont.buf.size(); i++)
+	for (unsigned i = 0; i < cont.size(); i++)
 	{
-		str << i+1 << ". " << cont.buf[i] << std::endl;
+		str << i+1 << ". " << cont[i] << std::endl;
 	}
 	return str;
 }
+#endif
