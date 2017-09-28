@@ -1,6 +1,5 @@
 #include <boost/test/auto_unit_test.hpp>
 #include "point.h"
-#include "stdafx.h"
 #include "rectangle.h"
 #include "container.h"
 using namespace std;
